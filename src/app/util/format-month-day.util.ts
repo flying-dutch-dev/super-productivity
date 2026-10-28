@@ -138,3 +138,18 @@ export const formatMonthDayShortYear = (date: Date, locale: DateTimeLocale): str
     return formatMonthDay(date, locale);
   }
 };
+
+/**
+ * Single place for the badge rule from #10804: month/day for dates in
+ * `currentYear`, month/day plus 2-digit year for any other year. Callers pass
+ * the current year because they define "today" differently (a given today
+ * string, or DateService with its start-of-day offset).
+ */
+export const formatMonthDayOrShortYear = (
+  date: Date,
+  locale: DateTimeLocale,
+  currentYear: number,
+): string =>
+  date.getFullYear() === currentYear
+    ? formatMonthDay(date, locale)
+    : formatMonthDayShortYear(date, locale);

@@ -3,10 +3,7 @@ import { dateStrToUtcDate } from '../../util/date-str-to-utc-date';
 import { TranslateService } from '@ngx-translate/core';
 import { T } from 'src/app/t.const';
 import { getDbDateStr, isDBDateStr } from '../../util/get-db-date-str';
-import {
-  formatMonthDay,
-  formatMonthDayShortYear,
-} from '../../util/format-month-day.util';
+import { formatMonthDayOrShortYear } from '../../util/format-month-day.util';
 import { DateTimeFormatService } from '../../core/date-time-format/date-time-format.service';
 
 @Pipe({
@@ -34,13 +31,10 @@ export class LocalDateStrPipe implements PipeTransform {
     const d = dateStrToUtcDate(value);
     // Use the configured locale if available, otherwise fall back to default
     const locale = this._dateTimeFormatService.currentLocale();
-    // Dates outside the current year get a 2-digit year, so tasks due next
-    // year don't look like this year's (#10804). Callers may pass '' as todayStr.
+    // Callers may pass '' as todayStr; fall back to the real current year then
     const currentYear = isDBDateStr(todayStr)
-      ? todayStr.slice(0, 4)
-      : getDbDateStr().slice(0, 4);
-    return value.slice(0, 4) === currentYear
-      ? formatMonthDay(d, locale)
-      : formatMonthDayShortYear(d, locale);
+      ? +todayStr.slice(0, 4)
+      : new Date().getFullYear();
+    return formatMonthDayOrShortYear(d, locale, currentYear);
   }
 }

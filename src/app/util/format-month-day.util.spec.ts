@@ -1,5 +1,9 @@
 import { DateTimeLocale, DateTimeLocales } from '../core/locale.constants';
-import { formatMonthDay, formatMonthDayShortYear } from './format-month-day.util';
+import {
+  formatMonthDay,
+  formatMonthDayOrShortYear,
+  formatMonthDayShortYear,
+} from './format-month-day.util';
 
 describe('formatMonthDay', () => {
   const testDate = new Date(2023, 11, 25); // December 25, 2023
@@ -294,5 +298,24 @@ describe('formatMonthDayShortYear (#10804)', () => {
 
   it('returns an empty string for an invalid date', () => {
     expect(formatMonthDayShortYear(new Date('invalid'), DateTimeLocales.en_us)).toBe('');
+  });
+});
+
+describe('formatMonthDayOrShortYear (#10804)', () => {
+  it('omits the year for dates in the current year', () => {
+    const date = new Date(2027, 5, 1);
+    expect(formatMonthDayOrShortYear(date, DateTimeLocales.en_us, 2027)).toBe('6/1');
+    expect(formatMonthDayOrShortYear(date, DateTimeLocales.nl, 2027)).toBe(
+      formatMonthDay(date, DateTimeLocales.nl),
+    );
+  });
+
+  it('adds a 2-digit year for dates in any other year', () => {
+    expect(
+      formatMonthDayOrShortYear(new Date(2027, 5, 1), DateTimeLocales.en_us, 2026),
+    ).toBe('6/1/27');
+    expect(
+      formatMonthDayOrShortYear(new Date(2025, 11, 31), DateTimeLocales.en_us, 2026),
+    ).toBe('12/31/25');
   });
 });
