@@ -1,7 +1,10 @@
 import { inject, Pipe, PipeTransform } from '@angular/core';
 import { DateService } from '../../core/date/date.service';
 import { ShortTimeHtmlPipe } from './short-time-html.pipe';
-import { formatMonthDay } from '../../util/format-month-day.util';
+import {
+  formatMonthDay,
+  formatMonthDayShortYear,
+} from '../../util/format-month-day.util';
 import { DateTimeFormatService } from '../../core/date-time-format/date-time-format.service';
 
 @Pipe({ name: 'shortPlannedAt', standalone: true })
@@ -19,7 +22,12 @@ export class ShortPlannedAtPipe implements PipeTransform {
       return this._shortTimeHtmlPipe.transform(value);
     } else {
       const locale = this._dateTimeFormatService.currentLocale();
-      return formatMonthDay(new Date(value), locale);
+      const date = new Date(value);
+      // Same rule as the localDateStr pipe: show the year outside the current one (#10804)
+      return this._dateService.todayStr(date).slice(0, 4) ===
+        this._dateService.todayStr().slice(0, 4)
+        ? formatMonthDay(date, locale)
+        : formatMonthDayShortYear(date, locale);
     }
   }
 }

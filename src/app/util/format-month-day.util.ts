@@ -101,3 +101,40 @@ export const formatMonthDay = (date: Date, locale: DateTimeLocale): string => {
     return `${month}/${day}`;
   }
 };
+
+const monthDayShortYearFormatters = new Map<DateTimeLocale, Intl.DateTimeFormat>();
+
+/**
+ * Month/day plus a 2-digit year, padding month and day exactly like
+ * {@link getMonthDayFormatter} so a date reads the same with or without year.
+ */
+const getMonthDayShortYearFormatter = (locale: DateTimeLocale): Intl.DateTimeFormat => {
+  const cached = monthDayShortYearFormatters.get(locale);
+  if (cached) return cached;
+
+  const { month, day } = getMonthDayFormatter(locale).resolvedOptions();
+  const formatter = dateTimeFormatter(locale, {
+    month: month as '2-digit' | 'numeric',
+    day: day as '2-digit' | 'numeric',
+    year: '2-digit',
+  });
+  monthDayShortYearFormatters.set(locale, formatter);
+  return formatter;
+};
+
+/**
+ * Formats a date as month, day and 2-digit year in locale-aware order, for
+ * compact badges that need to tell this year's dates from other years' (#10804).
+ *
+ * Examples: en-US "6/1/27", en-GB "01/06/27", de-DE "01.06.27", ja-JP "27/6/1".
+ * Falls back to {@link formatMonthDay} if the locale can't be formatted.
+ */
+export const formatMonthDayShortYear = (date: Date, locale: DateTimeLocale): string => {
+  if (!date || isNaN(date.getTime())) return '';
+  try {
+    return getMonthDayShortYearFormatter(locale).format(date);
+  } catch (error) {
+    Log.warn(`formatMonthDayShortYear failed for locale ${locale}`, error);
+    return formatMonthDay(date, locale);
+  }
+};

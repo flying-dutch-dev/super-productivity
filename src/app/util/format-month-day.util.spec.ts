@@ -1,5 +1,5 @@
 import { DateTimeLocale, DateTimeLocales } from '../core/locale.constants';
-import { formatMonthDay } from './format-month-day.util';
+import { formatMonthDay, formatMonthDayShortYear } from './format-month-day.util';
 
 describe('formatMonthDay', () => {
   const testDate = new Date(2023, 11, 25); // December 25, 2023
@@ -263,5 +263,36 @@ describe('formatMonthDay', () => {
         expect(formatMonthDay(singleDigitDate, locale)).not.toMatch(/\b0\d/);
       });
     });
+  });
+});
+
+describe('formatMonthDayShortYear (#10804)', () => {
+  const nextYearDate = new Date(2027, 5, 1); // June 1, 2027
+
+  it('adds a 2-digit year in the locale order', () => {
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.en_us)).toBe('6/1/27');
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.en_gb)).toBe('01/06/27');
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.de_de)).toBe('01.06.27');
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.ja_jp)).toBe('27/6/1');
+  });
+
+  it('pads day and month exactly like formatMonthDay', () => {
+    const locales: DateTimeLocale[] = [
+      DateTimeLocales.en_us,
+      DateTimeLocales.en_gb,
+      DateTimeLocales.de_de,
+      DateTimeLocales.fr_fr,
+      DateTimeLocales.es_es,
+      DateTimeLocales.nl,
+    ];
+    locales.forEach((locale) => {
+      const withYear = formatMonthDayShortYear(nextYearDate, locale);
+      expect(withYear).toContain(formatMonthDay(nextYearDate, locale).replace(/\.$/, ''));
+      expect(withYear).toContain('27');
+    });
+  });
+
+  it('returns an empty string for an invalid date', () => {
+    expect(formatMonthDayShortYear(new Date('invalid'), DateTimeLocales.en_us)).toBe('');
   });
 });
