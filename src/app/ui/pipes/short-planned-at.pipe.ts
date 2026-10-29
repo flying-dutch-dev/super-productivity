@@ -1,7 +1,9 @@
 import { inject, Pipe, PipeTransform } from '@angular/core';
 import { DateService } from '../../core/date/date.service';
 import { ShortTimeHtmlPipe } from './short-time-html.pipe';
-import { formatMonthDayOrShortYear } from '../../util/format-month-day.util';
+import { formatMonthDayWithYearIfNeeded } from '../../util/format-month-day.util';
+import { dateStrToUtcDate } from '../../util/date-str-to-utc-date';
+import { isDBDateStr } from '../../util/get-db-date-str';
 import { DateTimeFormatService } from '../../core/date-time-format/date-time-format.service';
 
 @Pipe({ name: 'shortPlannedAt', standalone: true })
@@ -10,7 +12,12 @@ export class ShortPlannedAtPipe implements PipeTransform {
   private _dateTimeFormatService = inject(DateTimeFormatService);
   private _dateService = inject(DateService);
 
-  transform(value?: number | null, timeOnly?: boolean): string | null {
+  /**
+   * @param todayStr the app's today; pass a signal value such as
+   * `todayDateStr()` so the pure pipe re-runs when the day changes. Defaults to
+   * DateService's today (honours the start-of-next-day setting).
+   */
+  transform(value?: number | null, timeOnly?: boolean, todayStr?: string): string | null {
     if (typeof value !== 'number') {
       return null;
     }
@@ -19,11 +26,11 @@ export class ShortPlannedAtPipe implements PipeTransform {
       return this._shortTimeHtmlPipe.transform(value);
     } else {
       const locale = this._dateTimeFormatService.currentLocale();
-      return formatMonthDayOrShortYear(
-        new Date(value),
-        locale,
-        +this._dateService.todayStr().slice(0, 4),
-      );
+      const today =
+        todayStr && isDBDateStr(todayStr)
+          ? dateStrToUtcDate(todayStr)
+          : this._dateService.getLogicalTodayDate();
+      return formatMonthDayWithYearIfNeeded(new Date(value), locale, today);
     }
   }
 }

@@ -158,7 +158,10 @@
               <mat-icon>alarm</mat-icon>
               <div
                 class="time-badge"
-                [innerHTML]="t.dueWithTime | shortPlannedAt"
+                [innerHTML]="
+                  t.dueWithTime
+                    | shortPlannedAt: false : globalTrackingIntervalService.todayDateStr()
+                "
               ></div>
             </button>
           } @else if (t.dueWithTime) {
@@ -185,7 +188,10 @@
               }
               <div
                 class="time-badge"
-                [innerHTML]="t.dueWithTime | shortPlannedAt"
+                [innerHTML]="
+                  t.dueWithTime
+                    | shortPlannedAt: false : globalTrackingIntervalService.todayDateStr()
+                "
               ></div>
             </button>
           } @else if (isShowDueDayBtn()) {
@@ -242,7 +248,12 @@
               @if (t.deadlineWithTime) {
                 <div
                   class="time-badge"
-                  [innerHTML]="t.deadlineWithTime | shortPlannedAt"
+                  [innerHTML]="
+                    t.deadlineWithTime
+                      | shortPlannedAt
+                        : false
+                        : globalTrackingIntervalService.todayDateStr()
+                  "
                 ></div>
               } @else if (t.deadlineDay) {
                 <div class="time-badge">

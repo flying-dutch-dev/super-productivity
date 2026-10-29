@@ -1,9 +1,13 @@
 // An icon button with a `.time-badge` under its icon (task list, board cards).
-// A badge with a year (#10804) can be wider than the 40px button: icon and
-// badge share one grid cell, so the button grows with a wide badge instead of
-// the badge spilling over the neighbouring button or the card edge. Buttons
-// with short badges keep their 40px size. Use it under a selector that beats
-// the fixed icon-button size in _overwrite-material.scss (three classes).
+// Icon and badge share one grid cell, so the button is as wide as the wider of
+// the two (at least 40px) and a badge never spills over the neighbouring button
+// or the card edge. Badges with a year (#10804) widen it, and so do a few
+// current-year badges that are wider than 40px (12-hour times such as
+// "10:30 PM", longer "Today" translations such as nl "Vandaag").
+//
+// Needs a selector more specific than the fixed 40px icon-button rule in
+// _overwrite-material.scss (three classes, 0-3-0). In component styles the
+// view-encapsulation attributes add to the selector's weight.
 @mixin timeBadgeIconBtn {
   display: inline-grid;
   place-items: center;

@@ -1,8 +1,8 @@
 import { DateTimeLocale, DateTimeLocales } from '../core/locale.constants';
 import {
   formatMonthDay,
-  formatMonthDayOrShortYear,
-  formatMonthDayShortYear,
+  formatMonthDayWithYear,
+  formatMonthDayWithYearIfNeeded,
 } from './format-month-day.util';
 
 describe('formatMonthDay', () => {
@@ -270,60 +270,96 @@ describe('formatMonthDay', () => {
   });
 });
 
-describe('formatMonthDayShortYear (#10804)', () => {
+describe('formatMonthDayWithYear (#10804)', () => {
   const nextYearDate = new Date(2027, 5, 1); // June 1, 2027
 
   it('adds a 2-digit year in the locale order', () => {
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.en_us)).toBe('6/1/27');
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.en_gb)).toBe('01/06/27');
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.de_de)).toBe('01.06.27');
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.ko_kr)).toBe(
-      '27. 6. 1.',
-    );
+    expect(formatMonthDayWithYear(nextYearDate, DateTimeLocales.en_us)).toBe('6/1/27');
+    expect(formatMonthDayWithYear(nextYearDate, DateTimeLocales.en_gb)).toBe('01/06/27');
+    expect(formatMonthDayWithYear(nextYearDate, DateTimeLocales.de_de)).toBe('01.06.27');
+    expect(formatMonthDayWithYear(nextYearDate, DateTimeLocales.ko_kr)).toBe('27. 6. 1.');
   });
 
   it('uses the full year in year-first formats, where "27" would read like a day', () => {
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.sv)).toBe('2027-06-01');
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.ja_jp)).toBe('2027/6/1');
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.zh_cn)).toBe('2027/6/1');
+    expect(formatMonthDayWithYear(nextYearDate, DateTimeLocales.sv)).toBe('2027-06-01');
+    expect(formatMonthDayWithYear(nextYearDate, DateTimeLocales.ja_jp)).toBe('2027/6/1');
+    expect(formatMonthDayWithYear(nextYearDate, DateTimeLocales.zh_cn)).toBe('2027/6/1');
   });
 
-  it('pads day and month exactly like formatMonthDay', () => {
-    const locales: DateTimeLocale[] = [
-      DateTimeLocales.en_us,
-      DateTimeLocales.en_gb,
-      DateTimeLocales.de_de,
-      DateTimeLocales.fr_fr,
-      DateTimeLocales.es_es,
-      DateTimeLocales.nl,
+  it('pads day and month like formatMonthDay', () => {
+    const singleDigitDate = new Date(2027, 0, 5); // January 5, 2027
+    const cases: [DateTimeLocale, string, string][] = [
+      [DateTimeLocales.en_us, '1/5', '1/5/27'],
+      [DateTimeLocales.en_gb, '05/01', '05/01/27'],
+      [DateTimeLocales.de_de, '05.01.', '05.01.27'],
+      [DateTimeLocales.fr_fr, '05/01', '05/01/27'],
+      [DateTimeLocales.es_es, '5/1', '5/1/27'],
+      [DateTimeLocales.nl, '05-01', '05-01-27'],
     ];
-    locales.forEach((locale) => {
-      const withYear = formatMonthDayShortYear(nextYearDate, locale);
-      expect(withYear).toContain(formatMonthDay(nextYearDate, locale).replace(/\.$/, ''));
-      expect(withYear).toContain('27');
+    cases.forEach(([locale, withoutYear, withYear]) => {
+      expect(formatMonthDay(singleDigitDate, locale)).toBe(withoutYear);
+      expect(formatMonthDayWithYear(singleDigitDate, locale)).toBe(withYear);
     });
   });
 
+  it("takes separators from the locale's format with a year, which can differ", () => {
+    const singleDigitDate = new Date(2027, 0, 5);
+    expect(formatMonthDay(singleDigitDate, DateTimeLocales.tr_tr)).toBe('5/01');
+    expect(formatMonthDayWithYear(singleDigitDate, DateTimeLocales.tr_tr)).toBe(
+      '5.01.27',
+    );
+    expect(formatMonthDay(singleDigitDate, DateTimeLocales.sv)).toBe('5/1');
+    expect(formatMonthDayWithYear(singleDigitDate, DateTimeLocales.sv)).toBe(
+      '2027-01-05',
+    );
+  });
+
   it('returns an empty string for an invalid date', () => {
-    expect(formatMonthDayShortYear(new Date('invalid'), DateTimeLocales.en_us)).toBe('');
+    expect(formatMonthDayWithYear(new Date('invalid'), DateTimeLocales.en_us)).toBe('');
   });
 });
 
-describe('formatMonthDayOrShortYear (#10804)', () => {
-  it('omits the year for dates in the current year', () => {
-    const date = new Date(2027, 5, 1);
-    expect(formatMonthDayOrShortYear(date, DateTimeLocales.en_us, 2027)).toBe('6/1');
-    expect(formatMonthDayOrShortYear(date, DateTimeLocales.nl, 2027)).toBe(
+describe('formatMonthDayWithYearIfNeeded (#10804)', () => {
+  const today = new Date(2026, 9, 29); // October 29, 2026
+
+  it('omits the year for dates in the same year as today', () => {
+    const date = new Date(2026, 11, 20);
+    expect(formatMonthDayWithYearIfNeeded(date, DateTimeLocales.en_us, today)).toBe(
+      '12/20',
+    );
+    expect(formatMonthDayWithYearIfNeeded(date, DateTimeLocales.nl, today)).toBe(
       formatMonthDay(date, DateTimeLocales.nl),
     );
   });
 
-  it('adds a 2-digit year for dates in any other year', () => {
+  it('adds the year for dates in any other year', () => {
     expect(
-      formatMonthDayOrShortYear(new Date(2027, 5, 1), DateTimeLocales.en_us, 2026),
+      formatMonthDayWithYearIfNeeded(new Date(2027, 5, 1), DateTimeLocales.en_us, today),
     ).toBe('6/1/27');
     expect(
-      formatMonthDayOrShortYear(new Date(2025, 11, 31), DateTimeLocales.en_us, 2026),
+      formatMonthDayWithYearIfNeeded(
+        new Date(2025, 11, 31),
+        DateTimeLocales.en_us,
+        today,
+      ),
     ).toBe('12/31/25');
+  });
+
+  it("compares years in the locale's calendar (Persian year starts in March)", () => {
+    const fa = DateTimeLocales.fa;
+    // Jan 15, 2027 and Oct 29, 2026 are both in Persian year 1405
+    expect(formatMonthDayWithYearIfNeeded(new Date(2027, 0, 15), fa, today)).toBe(
+      formatMonthDay(new Date(2027, 0, 15), fa),
+    );
+    // Apr 1, 2027 is in 1406, while Jan 15, 2027 is still in 1405
+    expect(
+      formatMonthDayWithYearIfNeeded(new Date(2027, 3, 1), fa, new Date(2027, 0, 15)),
+    ).toBe(formatMonthDayWithYear(new Date(2027, 3, 1), fa));
+  });
+
+  it('returns an empty string for an invalid date', () => {
+    expect(
+      formatMonthDayWithYearIfNeeded(new Date('invalid'), DateTimeLocales.en_us, today),
+    ).toBe('');
   });
 });

@@ -61,7 +61,7 @@
           <mat-icon>alarm</mat-icon>
           <div
             class="time-badge"
-            [innerHTML]="task.dueWithTime | shortPlannedAt"
+            [innerHTML]="task.dueWithTime | shortPlannedAt: false : todayDateStr()"
           ></div>
         </button>
       }
@@ -76,7 +76,7 @@
           mat-icon-button
         >
           <mat-icon>today</mat-icon>
-          <div class="time-badge">{{ task.dueDay | localDateStr }}</div>
+          <div class="time-badge">{{ task.dueDay | localDateStr: todayDateStr() }}</div>
         </button>
       }
     </planner-task>

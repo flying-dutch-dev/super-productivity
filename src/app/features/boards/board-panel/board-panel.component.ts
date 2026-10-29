@@ -128,6 +128,8 @@ export class BoardPanelComponent implements TaskCardList {
   _matDialog = inject(MatDialog);
   readonly multiSelect = inject(TaskMultiSelectService);
   private readonly _trackingInterval = inject(GlobalTrackingIntervalService);
+  // Passed to the pure localDateStr pipe so badges re-render when the day changes
+  readonly todayDateStr = this._trackingInterval.todayDateStr;
   private readonly _dateService = inject(DateService);
   private _element = inject<ElementRef<HTMLElement>>(ElementRef);
   private _injector = inject(Injector);

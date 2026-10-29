@@ -126,8 +126,8 @@ header {
   }
 }
 
-// Wide (year) badges widen their own button, see the mixin (#10804).
-// `:host` beats the fixed icon-button size.
+// Wide badges widen their own button, see the mixin (#10804). With the
+// encapsulation attributes this selector outweighs the fixed 40px rule.
 :host .ico-btn.schedule-btn {
   @include timeBadgeIconBtn;
 }
