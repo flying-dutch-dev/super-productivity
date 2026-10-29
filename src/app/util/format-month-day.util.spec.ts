@@ -277,7 +277,15 @@ describe('formatMonthDayShortYear (#10804)', () => {
     expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.en_us)).toBe('6/1/27');
     expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.en_gb)).toBe('01/06/27');
     expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.de_de)).toBe('01.06.27');
-    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.ja_jp)).toBe('27/6/1');
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.ko_kr)).toBe(
+      '27. 6. 1.',
+    );
+  });
+
+  it('uses the full year in year-first formats, where "27" would read like a day', () => {
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.sv)).toBe('2027-06-01');
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.ja_jp)).toBe('2027/6/1');
+    expect(formatMonthDayShortYear(nextYearDate, DateTimeLocales.zh_cn)).toBe('2027/6/1');
   });
 
   it('pads day and month exactly like formatMonthDay', () => {

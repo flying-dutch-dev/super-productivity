@@ -469,6 +469,13 @@ done-toggle {
   }
 }
 
+// Wide (year) badges widen their own button, see the mixin (#10804).
+// `.first-line .ico-btn` beats the fixed icon-button size.
+.first-line .ico-btn.schedule-btn,
+.first-line .ico-btn.deadline-btn {
+  @include timeBadgeIconBtn;
+}
+
 .repeat-date-badge,
 .time-badge {
   @include center;

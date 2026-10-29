@@ -105,28 +105,39 @@ export const formatMonthDay = (date: Date, locale: DateTimeLocale): string => {
 const monthDayShortYearFormatters = new Map<DateTimeLocale, Intl.DateTimeFormat>();
 
 /**
- * Month/day plus a 2-digit year, padding month and day exactly like
+ * Month/day plus year, padding month and day exactly like
  * {@link getMonthDayFormatter} so a date reads the same with or without year.
+ * The year has 2 digits, except in year-first formats that write a full year
+ * themselves (ISO "2027-06-01", ja, zh): a leading "27" there reads like a day.
  */
 const getMonthDayShortYearFormatter = (locale: DateTimeLocale): Intl.DateTimeFormat => {
   const cached = monthDayShortYearFormatters.get(locale);
   if (cached) return cached;
 
+  const shortDateParts = new Intl.DateTimeFormat([locale, DEFAULT_LOCALE], {
+    dateStyle: 'short',
+  }).formatToParts(PADDING_PROBE_DATE);
+  const isYearFirst =
+    shortDateParts.find((part) => part.type !== 'literal')?.type === 'year';
+  const shortDateYearLength =
+    shortDateParts.find((part) => part.type === 'year')?.value.length ?? 0;
+
   const { month, day } = getMonthDayFormatter(locale).resolvedOptions();
   const formatter = dateTimeFormatter(locale, {
     month: month as '2-digit' | 'numeric',
     day: day as '2-digit' | 'numeric',
-    year: '2-digit',
+    year: isYearFirst && shortDateYearLength >= 4 ? 'numeric' : '2-digit',
   });
   monthDayShortYearFormatters.set(locale, formatter);
   return formatter;
 };
 
 /**
- * Formats a date as month, day and 2-digit year in locale-aware order, for
- * compact badges that need to tell this year's dates from other years' (#10804).
+ * Formats a date as month, day and year in locale-aware order, for compact
+ * badges that need to tell this year's dates from other years' (#10804).
  *
- * Examples: en-US "6/1/27", en-GB "01/06/27", de-DE "01.06.27", ja-JP "27/6/1".
+ * Examples: en-US "6/1/27", en-GB "01/06/27", de-DE "01.06.27",
+ * ISO "2027-06-01", ja-JP "2027/6/1", ko-KR "27. 6. 1.".
  * Falls back to {@link formatMonthDay} if the locale can't be formatted.
  */
 export const formatMonthDayShortYear = (date: Date, locale: DateTimeLocale): string => {
@@ -141,7 +152,7 @@ export const formatMonthDayShortYear = (date: Date, locale: DateTimeLocale): str
 
 /**
  * Single place for the badge rule from #10804: month/day for dates in
- * `currentYear`, month/day plus 2-digit year for any other year. Callers pass
+ * `currentYear`, month/day plus year for any other year. Callers pass
  * the current year because they define "today" differently (a given today
  * string, or DateService with its start-of-day offset).
  */
