@@ -183,6 +183,20 @@ const displayedYear = (date: Date, locale: DateTimeLocale): string => {
   return formatter.formatToParts(date).find((part) => part.type === 'year')?.value ?? '';
 };
 
+/**
+ * Whether a badge for `date` shows a year: the badge rule from #10804. True for
+ * dates outside the year of `today`, which callers take from DateService
+ * (start-of-next-day setting), not the wall clock.
+ */
+export const isOutsideDisplayedYear = (
+  date: Date,
+  locale: DateTimeLocale,
+  today: Date,
+): boolean => {
+  if (!date || isNaN(date.getTime())) return false;
+  return !isSameDisplayedYear(date, today, locale);
+};
+
 const isSameDisplayedYear = (
   date: Date,
   today: Date,
@@ -200,10 +214,8 @@ const isSameDisplayedYear = (
 };
 
 /**
- * Single place for the badge rule from #10804: month/day for dates in the same
- * year as `today`, month/day plus year for any other year. Callers pass the
- * app's today (DateService, honouring the start-of-next-day setting), not the
- * wall clock.
+ * Badge text: month/day plus year when {@link isOutsideDisplayedYear}, otherwise
+ * month/day only.
  */
 export const formatMonthDayWithYearIfNeeded = (
   date: Date,
@@ -211,7 +223,7 @@ export const formatMonthDayWithYearIfNeeded = (
   today: Date,
 ): string => {
   if (!date || isNaN(date.getTime())) return '';
-  return isSameDisplayedYear(date, today, locale)
-    ? formatMonthDay(date, locale)
-    : formatMonthDayWithYear(date, locale);
+  return isOutsideDisplayedYear(date, locale, today)
+    ? formatMonthDayWithYear(date, locale)
+    : formatMonthDay(date, locale);
 };

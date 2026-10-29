@@ -469,10 +469,9 @@ done-toggle {
   }
 }
 
-// Wide badges widen their own button, see the mixin (#10804). With the
+// Badges with a year widen their own button, see the mixin (#10804). With the
 // encapsulation attributes this selector outweighs the fixed 40px rule.
-.first-line .ico-btn.schedule-btn,
-.first-line .ico-btn.deadline-btn {
+.first-line .ico-btn.has-year-badge {
   @include timeBadgeIconBtn;
 }
 

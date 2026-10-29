@@ -44,6 +44,7 @@ import { BoardsActions } from '../store/boards.actions';
 import { unique } from '../../../util/unique';
 import { TaskSharedActions } from '../../../root-store/meta/task-shared.actions';
 import { LocalDateStrPipe } from '../../../ui/pipes/local-date-str.pipe';
+import { DateHasOtherYearPipe } from '../../../ui/pipes/date-has-other-year.pipe';
 import { MatIcon } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -97,6 +98,7 @@ export interface BoardPanelNavigation {
     CdkDropList,
     AddTaskInlineComponent,
     LocalDateStrPipe,
+    DateHasOtherYearPipe,
     MatIcon,
     MatIconButton,
     TranslatePipe,

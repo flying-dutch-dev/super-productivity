@@ -2,8 +2,7 @@ import { inject, Pipe, PipeTransform } from '@angular/core';
 import { DateService } from '../../core/date/date.service';
 import { ShortTimeHtmlPipe } from './short-time-html.pipe';
 import { formatMonthDayWithYearIfNeeded } from '../../util/format-month-day.util';
-import { dateStrToUtcDate } from '../../util/date-str-to-utc-date';
-import { isDBDateStr } from '../../util/get-db-date-str';
+import { getBadgeToday } from './date-has-other-year.pipe';
 import { DateTimeFormatService } from '../../core/date-time-format/date-time-format.service';
 
 @Pipe({ name: 'shortPlannedAt', standalone: true })
@@ -26,11 +25,11 @@ export class ShortPlannedAtPipe implements PipeTransform {
       return this._shortTimeHtmlPipe.transform(value);
     } else {
       const locale = this._dateTimeFormatService.currentLocale();
-      const today =
-        todayStr && isDBDateStr(todayStr)
-          ? dateStrToUtcDate(todayStr)
-          : this._dateService.getLogicalTodayDate();
-      return formatMonthDayWithYearIfNeeded(new Date(value), locale, today);
+      return formatMonthDayWithYearIfNeeded(
+        new Date(value),
+        locale,
+        getBadgeToday(todayStr, this._dateService),
+      );
     }
   }
 }
